@@ -40,17 +40,20 @@ namespace MSGraphBatch
                 return Task.FromResult(0);
             }));
 
+            Console.WriteLine("Adding events in batches...");
+
             await AddEventsInBatch(config, graphClient);
 
+            Console.WriteLine("Press enter to exit.");
             Console.ReadLine();
         }
 
         private static async Task AddEventsInBatch(IConfigurationRoot config, GraphServiceClient client)
         {
             var events = new List<Event>();
+            int maxNoBatchItems = 20;
 
-
-            for (int i = 0; i < 40; i++)
+            for (int i = 0; i < maxNoBatchItems*3; i++)
             {
                 var @event = new Event
                 {
@@ -79,6 +82,8 @@ namespace MSGraphBatch
                 events.Add(@event);
             }
 
+            Console.WriteLine("Creating batches...");
+
             List<BatchRequestContent> batches = new List<BatchRequestContent>();
 
             var batchRequestContent = new BatchRequestContent();
@@ -94,16 +99,24 @@ namespace MSGraphBatch
                 batchRequestContent.AddBatchRequestStep(requestStep);
 
                 // Max number of 20 request per batch. So we need to send out multiple batches.
-                if (events.IndexOf(e) > 0 && events.IndexOf(e) % 20 == 0)
+                if (events.IndexOf(e) > 0 && events.IndexOf(e) % maxNoBatchItems == 0)
                 {
                     batches.Add(batchRequestContent);
                     batchRequestContent = new BatchRequestContent();
                 }
             }
 
+            if(batchRequestContent.BatchRequestSteps.Count < maxNoBatchItems)
+            {
+                batches.Add(batchRequestContent);
+            }
+
             if (batches.Count == 0 && batchRequestContent != null) batches.Add(batchRequestContent);
 
-            Console.WriteLine("Creating events in batches...");
+            Console.WriteLine("Batches created. Press enter to submit them.");
+            Console.ReadLine();
+
+            Console.WriteLine("Submitting batches...");
 
             List<string> createdEvents = new List<string>();
 
@@ -128,29 +141,34 @@ namespace MSGraphBatch
                     HttpResponseMessage httpResponse = await response.GetResponseByIdAsync(key);
                     var responseContent = await httpResponse.Content.ReadAsStringAsync();
 
-                    JObject rss = JObject.Parse(responseContent);
+                    JObject eventResponse = JObject.Parse(responseContent);
 
-                    createdEvents.Add((string)rss["id"]);
+                    var eventId = (string)eventResponse["id"];
+                    if (eventId != null)
+                    {
+                        createdEvents.Add(eventId);
+                    }
 
-                    string nextLink = await response.GetNextLinkAsync();
-                    Console.WriteLine($"Response code: {responses[key].StatusCode}-{responses[key].Content.ReadAsStringAsync().Result.Substring(0, 255)}");
+                    Console.WriteLine($"Response code: {responses[key].StatusCode}-{responses[key].ReasonPhrase}-{eventId}");
                 }
             }
 
-            Console.WriteLine("Events created. Press enter to remove them from the calendar.");
+            Console.WriteLine($"{events.Count} events created. Press enter to remove them from the calendar.");
             Console.ReadLine();
             Console.WriteLine($"Removing {createdEvents.Count} events...");
 
             foreach (string eventId in createdEvents)
             {
-                await client.Users[config["CalendarEmail"]].Events[eventId]
-                  .Request()
-                  .DeleteAsync();
-
+                if (eventId != null)
+                {
+                    await client.Users[config["CalendarEmail"]].Events[eventId]
+                      .Request()
+                      .DeleteAsync();
+                }
             }
 
             Console.WriteLine($"{createdEvents.Count} events where removed from calendar.");
-            Console.ReadLine();
+            
         }
 
         private static async Task<string> GetTokenAsync(IConfigurationRoot config)
