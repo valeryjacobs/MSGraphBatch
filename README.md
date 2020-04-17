@@ -4,9 +4,11 @@ When using MS Graph to manage inboxes and calandars you might end up needing to 
 
 Basically you can optimize the overhead of submitting multiple reperate request by turning them into a single batch payload but internally MS Graph still handles each request reflected in the payload seperately. This means you have to walk through the response to see whether each request succeeded as this is not an atomic transaction. Below is a description of how a batch can be constructed and handled at runtime.
 
+In this sample we use the MS Graph SDK package Microsoft.Graph but all of this 
+
 ## Getting Started
 
-We setup a batch of request by creating a BatchRequestContent object and inserting a series of BatchRequestStep objects which contain the HttpRequestMessage that holds a request object that is exactly the same as the ones you would submit seperately.
+We setup a batch of requests by creating a BatchRequestContent object and inserting a series of BatchRequestStep objects which contain the HttpRequestMessage object that holds a request object that is exactly the same as the ones you would submit seperately.
 
 ```
  List<BatchRequestContent> batches = new List<BatchRequestContent>();
@@ -19,8 +21,40 @@ We setup a batch of request by creating a BatchRequestContent object and inserti
 BatchRequestStep requestStep = new BatchRequestStep(events.IndexOf(e).ToString(), httpRequestMessage, null);
 batchRequestContent.AddBatchRequestStep(requestStep);
  ```
+Next we submit the batch to MS Graph which under the hood calls out to the https://graph.microsoft.com/v1.0/$batch endpoint with a payload that combines all requests in this format:
 
-### Prerequisites
+```
+"requests": [
+    {
+      "id": "1",
+      "method": "GET",
+      "url": "/me/drive/root:/{file}:/content"
+    },
+    ...
+```
+The ID is important as we need to track the status of these request and because the response is unordered.
+
+After the post we call GetResponsesAsync() to get a dictionary to walk through. We can call each individual response by using the Id (dictionary key).
+
+
+```
+response = await client.Batch.Request().PostAsync(batch);
+Dictionary<string, HttpResponseMessage> responses = await response.GetResponsesAsync();
+
+   foreach (string key in responses.Keys)
+                {
+                    HttpResponseMessage httpResponse = await response.GetResponseByIdAsync(key);
+                    var responseContent = await httpResponse.Content.ReadAsStringAsync();
+
+                   ...
+```
+
+The response clearly show us the result come in randomly.
+
+![alt text](https://github.com/valeryjacobs/MSGraphBatch/edit/master/images/unorderedresponse.png "Unordered response")
+
+
+### Considerations
 
 What things you need to install the software and how to install them
 
