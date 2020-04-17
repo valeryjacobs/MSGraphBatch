@@ -51,7 +51,7 @@ Dictionary<string, HttpResponseMessage> responses = await response.GetResponsesA
 
 The response clearly show us the result come in randomly.
 
-![alt text](https://github.com/valeryjacobs/MSGraphBatch/edit/master/images/unorderedresponse.png "Unordered response")
+![alt text](https://github.com/valeryjacobs/MSGraphBatch/blob/master/UnorderedBatchResponse.PNG "Logo Title Text 1")
 
 
 ### Considerations
