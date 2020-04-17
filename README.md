@@ -56,79 +56,37 @@ The response clearly show us the result come in randomly.
 
 ### Considerations
 
-What things you need to install the software and how to install them
+MS Graph throttles request as described in [these docs](https://docs.microsoft.com/en-us/graph/throttling#outlook-service-limits). When the limits are exceeded you should expect to see HTTP 429 responses that requires us to back of and retry at a later point in time.
 
-```
-Give examples
-```
+Additionally the amount of steps in a batch is currently limited to ony 20 items (?!). To submit more requests we unfortunately need to 'batch the batches'. This sample show a simple approach to do this.
+
 
 ### Installing
 
-A step by step series of examples that tell you how to get a development env running
+To run the sample you need an O365 tenant and a (dev) user account which calendar will be used to add events in batches and remove them afterwards. Additionally an application registration needs to be added (or reused) in the Azure AD directory belonging to the O365 tenant in use, including a client secret as we are using the client credential flow to aquire an accesstoken for MS Graph.
 
-Say what the step will be
-
-```
-Give the example
-```
-
-And repeat
+Add a local.settings.json to the project with these settings and update their values according to your tenant and app registration setup.
 
 ```
-until finished
+{
+  "Authority": "https://login.microsoftonline.com/",
+  "ClientId": "[Add the client id (application id) from the application registration in Azure AD]",
+  "ClientSecret": "[Add the client secret from the application registration in Azure AD]",
+  "DateFormat": "yyyy-MM-ddTHH:mm:ss",
+  "Scope": "https://graph.microsoft.com/.default",
+  "TenantId": "[Azure AD tenant ID]",
+  "CalendarEmail": "[Email address of the dev user's calendar in which objects will be created and deleted]"
+
+}
 ```
 
-End with an example of getting some data out of the system or using it for a little demo
-
-## Running the tests
-
-Explain how to run the automated tests for this system
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-### And coding style tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-## Deployment
-
-Add additional notes about how to deploy this on a live system
-
-## Built With
-
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
-
-## Contributing
-
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
-
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
-
-## Authors
-
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
-
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+Run the application and keep a browser open with the calendar view of the respective user.
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
 
-## Acknowledgments
+## References
 
 * Hat tip to anyone whose code was used
 * Inspiration
