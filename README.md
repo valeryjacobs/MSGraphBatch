@@ -1,10 +1,10 @@
-# MS Graph Batching
+# Microsoft Graph Batching
 
-When using MS Graph to manage inboxes and calandars you might end up needing to submit multiple request in one go. MS Graph has batching support for this but I might work a little different than you expect. 
+When using Microsoft Graph to manage inboxes and calandars you might end up needing to submit multiple request in one go. MS Graph has batching support for this but I might work a little different than you expect. 
 
-Basically you can optimize the overhead of submitting multiple reperate request by turning them into a single batch payload but internally MS Graph still handles each request reflected in the payload seperately. This means you have to walk through the response to see whether each request succeeded as this is not an atomic transaction. Below is a description of how a batch can be constructed and handled at runtime.
+Basically you can optimize the overhead of submitting multiple reperate request by turning them into a single batch payload but internally Microsoft Graph still handles each request reflected in the payload seperately. This means you have to walk through the response to see whether each request succeeded as this is not an atomic transaction. Below is a description of how a batch can be constructed and handled at runtime.
 
-In this sample we use the MS Graph SDK package Microsoft.Graph but all of this 
+In this sample we use the Microsoft Graph SDK package Microsoft.Graph but all of this 
 
 ## Getting Started
 
@@ -21,7 +21,7 @@ We setup a batch of requests by creating a BatchRequestContent object and insert
 BatchRequestStep requestStep = new BatchRequestStep(events.IndexOf(e).ToString(), httpRequestMessage, null);
 batchRequestContent.AddBatchRequestStep(requestStep);
  ```
-Next we submit the batch to MS Graph which under the hood calls out to the https://graph.microsoft.com/v1.0/$batch endpoint with a payload that combines all requests in this format:
+Next we submit the batch to Microsoft Graph which under the hood calls out to the https://graph.microsoft.com/v1.0/$batch endpoint with a payload that combines all requests in this format:
 
 ```
 "requests": [
@@ -56,14 +56,14 @@ The response clearly show us the result come in randomly.
 
 ### Considerations
 
-MS Graph throttles request as described in [these docs](https://docs.microsoft.com/en-us/graph/throttling#outlook-service-limits). When the limits are exceeded you should expect to see HTTP 429 responses that requires us to back of and retry at a later point in time.
+Microsoft Graph throttles request as described in [these docs](https://docs.microsoft.com/en-us/graph/throttling#outlook-service-limits). When the limits are exceeded you should expect to see HTTP 429 responses that requires us to back of and retry at a later point in time.
 
 Additionally the amount of steps in a batch is currently limited to ony 20 items (?!). To submit more requests we unfortunately need to 'batch the batches'. This sample show a simple approach to do this.
 
 
 ### Installing
 
-To run the sample you need an O365 tenant and a (dev) user account which calendar will be used to add events in batches and remove them afterwards. Additionally an application registration needs to be added (or reused) in the Azure AD directory belonging to the O365 tenant in use, including a client secret as we are using the client credential flow to aquire an accesstoken for MS Graph.
+To run the sample you need an O365 tenant and a (dev) user account which calendar will be used to add events in batches and remove them afterwards. Additionally an application registration needs to be added (or reused) in the Azure AD directory belonging to the O365 tenant in use, including a client secret as we are using the client credential flow to aquire an accesstoken for Microsoft Graph.
 
 Add a local.settings.json to the project with these settings and update their values according to your tenant and app registration setup.
 
@@ -88,5 +88,5 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## References
 
-* [MS Graph batching docs](https://docs.microsoft.com/en-us/graph/json-batching)
+* [Microsoft Graph batching docs](https://docs.microsoft.com/en-us/graph/json-batching)
 
